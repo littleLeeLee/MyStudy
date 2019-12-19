@@ -74,19 +74,52 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
                 0.55f,-0.53f,0.7f,0.1f,03f,
                 0.55f,0.53f,0.7f,0.1f,03f,
 
+                //继续增加多个三角形  减少三角形边缘突出
+                //第一个
+                -0.25f,-0.25f,1f,1f,1f,
+                -0.5f,-0.5f,0.7f,0.7f,0.7f,
+                0f,-0.5f,0.7f,0.7f,0.7f,
+                0f,0f,0.7f,0.7f,0.7f,
+                -0.5f,0f,0.7f,0.7f,0.7f,
+                -0.5f,-0.5f,0.7f,0.7f,0.7f,
+
+               //第二个
+                0.25f,-0.25f,1f,1f,1f,
+                0f,-0.5f,0.7f,0.7f,0.7f,
+                0.5f,-0.5f,0.7f,0.7f,0.7f,
+                0.5f,0f,0.7f,0.7f,0.7f,
+                0f,0f,0.7f,0.7f,0.7f,
+                0f,-0.5f,0.7f,0.7f,0.7f,
+
+                //第三个
+               0.25f,0.25f,1f,1f,1f,
+                0f,0f,0.7f,0.7f,0.7f,
+                0.5f,0f,0.7f,0.7f,0.7f,
+                0.5f,0.5f,0.7f,0.7f,0.7f,
+                0f,0.5f,0.7f,0.7f,0.7f,
+                0f,0f,0.7f,0.7f,0.7f,
+
+                //第四个
+                -0.25f,0.25f,1f,1f,1f,
+                -0.5f,0f,0.7f,0.7f,0.7f,
+                0f,0f,0.7f,0.7f,0.7f,
+                0f,0.5f,0.7f,0.7f,0.7f,
+                -0.5f,0.5f,0.7f,0.7f,0.7f,
+                -0.5f,0f,0.7f,0.7f,0.7f,
+
                //开始优化
-                0.0f,0.0f,1f,1f,1f,
+               /* 0.0f,0.0f,1f,1f,1f,
                 -0.5f,-0.5f,0.7f,0.7f,0.7f,
                 0.5f,-0.5f,0.7f,0.7f,0.7f,
 
                 0.5f,0.5f,0.7f,0.7f,0.7f,
                 -0.5f,0.5f,0.7f,0.7f,0.7f,
-                -0.5f,-0.5f,0.7f,0.7f,0.7f,
+                -0.5f,-0.5f,0.7f,0.7f,0.7f,*/
 
                 //mid line
 
                 -0.5f,0f,1f,1f,0.0f,
-                0.5f,0f,1f,1f,0.0f,
+                0.5f,0f,0f,0f,1.0f,
 
 
                 //first handle
@@ -194,21 +227,28 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     //   glUniform4f(uColorLocation,1.0f,1.0f,1.0f,1.0f);
         //绘制的形状  一个桌子是两个三角形组成   从数组开始处开始读取顶点信息  总共多少个顶点  6个
         glDrawArrays(GL_TRIANGLE_FAN,6,6);
+
+        glDrawArrays(GL_TRIANGLE_FAN,12,6);
+
+        glDrawArrays(GL_TRIANGLE_FAN,18,6);
+
+        glDrawArrays(GL_TRIANGLE_FAN,24,6);
+
         //绘制分割线  分割线有两个点
      //   glUniform4f(uColorLocation,1.0f,0.2f,0.4f,0.6f);
          //同上  第7个开始就是分割线的顶点了  有两个
 
-         glDrawArrays(GL_LINES,12,2);
+         glDrawArrays(GL_LINES,30,2);
 
          //绘制两个棒槌😂 其实就是两个点
      //  glUniform4f(uColorLocation,0.0f,0.0f,1.0f,1.0f);
-       glDrawArrays(GL_POINTS,14,1);
+       glDrawArrays(GL_POINTS,32,1);
         //第二个
      //   glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
-        glDrawArrays(GL_POINTS,15,1);
+        glDrawArrays(GL_POINTS,33,1);
         //第三个
      //   glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
-        glDrawArrays(GL_POINTS,16,1);
+        glDrawArrays(GL_POINTS,34,1);
 
 
 
