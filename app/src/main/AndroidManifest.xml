@@ -27,6 +27,7 @@
         <activity android:name=".actiivity.CameraActivitySurface"/>
         <activity android:name=".actiivity.CameraActivityGLRgb"/>
         <activity android:name=".actiivity.CameraActivityGLBlack"/>
+        <activity android:name=".actiivity.MyOpenGLActivity" />
     </application>
 
 </manifest>

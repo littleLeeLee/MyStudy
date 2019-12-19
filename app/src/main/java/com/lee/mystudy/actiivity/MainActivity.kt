@@ -2,6 +2,9 @@ package com.lee.mystudy.actiivity
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -12,8 +15,11 @@ import com.lee.mystudy.adapter.MainAdapter
 import kotlinx.android.synthetic.main.activity_main.*
 import com.jaredrummler.android.widget.AnimatedSvgView
 import com.lee.mystudy.R
+import com.lee.mystudy.jnitest.MyJniLibs
 import com.lee.mystudy.util.LogUtil
 import com.tbruyelle.rxpermissions2.RxPermissions
+
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -22,18 +28,18 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        LogUtil.d(MyJniLibs.loadString())
         checkPer()
         dataList.add("camera_by_surfaceView")
         dataList.add("camera_by_glSurfaceView")
         dataList.add("camera_by_glSurfaceView_black")
+        dataList.add("myOpenGL")
         dataList.add("camera")
         dataList.add("camera")
-        dataList.add("camera")
-
         setDataView()
         val svgView = findViewById<AnimatedSvgView>(R.id.animated_svg_view)
         svgView.setOnStateChangeListener {
-            LogUtil.d("state:$it")
+        //    LogUtil.d("state:$it")
 
             if(it == 3){
                 svgView.postDelayed( {
@@ -42,6 +48,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
         svgView.start()
+    }
+
+    private fun testSpeed() {
+        /*var path = "/sdcard/facepic/1563243566797.jpg"
+
+        val options = BitmapFactory.Options()
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888
+
+        val bitmap = BitmapFactory.decodeFile(path, options)
+
+        val argb = IntArray(480 * 640)
+        //扫描所有的像素点
+        bitmap.getPixels(argb, 0, 480, 0, 0, 480, 640)
+        LogUtil.d("argb:::"+argb.size)*/
+
+      /*  var k = 2
+        LogUtil.d("kkk:"+k)
+        for (a in 0 until 1024 * 1024 * 1024) {
+
+            k += a
+
+        }
+        LogUtil.d("kkk:"+k)*/
+
+        MyJniLibs.rgb2yuv()
+
+
     }
 
     @SuppressLint("CheckResult")
@@ -95,6 +128,16 @@ class MainActivity : AppCompatActivity() {
                         CameraActivityGLBlack.start(this@MainActivity)
 
                     }
+                    3->{
+                      //  testSpeed()
+                      /*  var cpuTestThread = CPUTestThread()
+                        for (a in 0 until 1500) {
+                            Thread(cpuTestThread).start()
+
+                        }*/
+                        val intent = Intent(this@MainActivity, MyOpenGLActivity::class.java)
+                        startActivity(intent);
+                    }
 
                 }
 
@@ -105,6 +148,32 @@ class MainActivity : AppCompatActivity() {
         ry_main.adapter = mainAdapter
 
 
+
+    }
+
+
+    inner class CPUTestThread : Runnable{
+        override fun run() {
+
+            var busyTime = 10
+            var idleTime = busyTime
+            var startTime = 0L
+            while (true) {
+
+                busyTime++
+                if(busyTime ==Integer.MAX_VALUE-10){
+                    busyTime = 10
+                }
+                try {
+                    Thread.sleep(10)
+                } catch ( e :InterruptedException) {
+
+                }
+            }
+
+
+
+        }
 
     }
 }
