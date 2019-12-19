@@ -21,6 +21,7 @@ import static android.opengl.GLES20.GL_FLOAT;
 import static android.opengl.GLES20.GL_LINES;
 import static android.opengl.GLES20.GL_POINTS;
 import static android.opengl.GLES20.GL_TRIANGLES;
+import static android.opengl.GLES20.GL_TRIANGLE_FAN;
 import static android.opengl.GLES20.glDrawArrays;
 import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGetAttribLocation;
@@ -31,9 +32,19 @@ import static android.opengl.GLES20.glVertexAttribPointer;
 
 public class MyOpenGLRender implements GLSurfaceView.Renderer {
 
+    private final int POSITION_COMPONENT_COUNT = 2;
     private  final int BYTES_PER_FLOAT = 4;
     private  FloatBuffer vertextData = null;
     private Context mContext;
+
+    private final String A_COLOR = "a_Color";
+    private final int COLOR_COMPONENT_COUNT = 3;
+    //表示一个顶点在数组里占用几位  本地内存里
+    private final int STRIDE = (POSITION_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
+    private int aColorLocation;
+
+
+
     //链接程序的id
     private int program;
 
@@ -53,30 +64,37 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         float[] tableVerticsWithTriangle = {
                 //openGL 只能绘制点 线 三角形
                 //所以可以把一个矩形看作两个三角形
-                //first
-                -0.5f,-0.5f,
-                0.5f,0.5f,
-                -0.5f,0.5f,
 
-                //second
-                -0.5f,-0.5f,
-                0.5f,-0.5f,
-                0.5f,0.5f,
+                //给桌子加上一个边框
+                -0.55f,-0.53f,0.7f,0.1f,03f,
+                0.55f,0.53f,0.7f,0.1f,03f,
+                -0.55f,0.53f,0.7f,0.1f,03f,
 
+                -0.55f,-0.53f,0.7f,0.1f,03f,
+                0.55f,-0.53f,0.7f,0.1f,03f,
+                0.55f,0.53f,0.7f,0.1f,03f,
+
+               //开始优化
+                0.0f,0.0f,1f,1f,1f,
+                -0.5f,-0.5f,0.7f,0.7f,0.7f,
+                0.5f,-0.5f,0.7f,0.7f,0.7f,
+
+                0.5f,0.5f,0.7f,0.7f,0.7f,
+                -0.5f,0.5f,0.7f,0.7f,0.7f,
+                -0.5f,-0.5f,0.7f,0.7f,0.7f,
 
                 //mid line
 
-                -0.5f,0f,
-                0.5f,0f,
+                -0.5f,0f,1f,1f,0.0f,
+                0.5f,0f,1f,1f,0.0f,
 
 
                 //first handle
-                0f,-0.25f,
+                0f,-0.25f,0.2f,0.2f,0.7f,
                 //second handle
-                0f,0.25f,
+                0f,0.25f,0.1f,0.7f,0.1f,
                 //third
-                0.0f,0.0f,
-
+                0.0f,0.0f,0.3f,0.7f,0.2f
         };
 
         //顶点数据在本地内存里
@@ -88,7 +106,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
 
     }
 
-    private final int POSITION_COMPONENT_COUNT = 2;
+
 
     /**
      * 当surface 被创建时 Glsurfaceview 回调用这个方法，这个发生再程序第一次运行的时候，并且当设备被唤醒或者用户从其他activity
@@ -117,9 +135,11 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         glUseProgram(program);
 
         //获取uniform的位置
-        uColorLocation = glGetUniformLocation(program,U_COLOR);
+      //  uColorLocation = glGetUniformLocation(program,U_COLOR);
+        aColorLocation = glGetAttribLocation(program,A_COLOR);
         //获取属性位置
-        aPositionLocation = glGetAttribLocation(program,A_POSITION);
+       aPositionLocation = glGetAttribLocation(program,A_POSITION);
+
         //关联属性与顶点数据的数组  告诉OpenGL从第一个开始读取
         vertextData.position(0);
         //告诉OpenGL 在缓冲区vertexData  中找到a_Position 对应的数据
@@ -134,9 +154,15 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
          * vertextData  读取的数据源
          */
 
-        glVertexAttribPointer(aPositionLocation,POSITION_COMPONENT_COUNT,GL_FLOAT,false,0,vertextData);
+        glVertexAttribPointer(aPositionLocation,POSITION_COMPONENT_COUNT,GL_FLOAT,false,STRIDE,vertextData);
         //使能顶点数据  告诉OpenGL所需要的数据位置
         glEnableVertexAttribArray(aPositionLocation);
+
+        //告诉OpenGL从哪个位置开始读取颜色属性
+        vertextData.position(POSITION_COMPONENT_COUNT);
+        //把带颜色属性跟着色器的a_color关联起来
+        glVertexAttribPointer(aColorLocation,COLOR_COMPONENT_COUNT,GL_FLOAT,false,STRIDE,vertextData);
+        glEnableVertexAttribArray(aColorLocation);
 
     }
 
@@ -160,26 +186,31 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
 
         gl.glClear(GL_COLOR_BUFFER_BIT);
-
+        //绘制桌子边框
+       // glUniform4f(uColorLocation,0.7f,0.1f,03f,0.7f);
+        glDrawArrays(GL_TRIANGLE_FAN,0,6);
         //绘制桌子
         //更新着色器中的u_color 的值，与属性不同uniform没有默认值  所以指定4个分量 RGBA
-       glUniform4f(uColorLocation,1.0f,1.0f,1.0f,1.0f);
+    //   glUniform4f(uColorLocation,1.0f,1.0f,1.0f,1.0f);
         //绘制的形状  一个桌子是两个三角形组成   从数组开始处开始读取顶点信息  总共多少个顶点  6个
-        glDrawArrays(GL_TRIANGLES,0,6);
+        glDrawArrays(GL_TRIANGLE_FAN,6,6);
         //绘制分割线  分割线有两个点
-        glUniform4f(uColorLocation,1.0f,1.0f,0.0f,1.0f);
+     //   glUniform4f(uColorLocation,1.0f,0.2f,0.4f,0.6f);
          //同上  第7个开始就是分割线的顶点了  有两个
-         glDrawArrays(GL_LINES,6,2);
+
+         glDrawArrays(GL_LINES,12,2);
 
          //绘制两个棒槌😂 其实就是两个点
-        glUniform4f(uColorLocation,0.0f,0.0f,1.0f,1.0f);
-       glDrawArrays(GL_POINTS,8,1);
+     //  glUniform4f(uColorLocation,0.0f,0.0f,1.0f,1.0f);
+       glDrawArrays(GL_POINTS,14,1);
         //第二个
-        glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
-        glDrawArrays(GL_POINTS,9,1);
+     //   glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
+        glDrawArrays(GL_POINTS,15,1);
         //第三个
-        glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
-        glDrawArrays(GL_POINTS,10,1);
+     //   glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
+        glDrawArrays(GL_POINTS,16,1);
+
+
 
     }
 }
