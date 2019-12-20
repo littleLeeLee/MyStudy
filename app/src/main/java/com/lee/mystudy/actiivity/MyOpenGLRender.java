@@ -27,10 +27,21 @@ import static android.opengl.GLES20.glEnableVertexAttribArray;
 import static android.opengl.GLES20.glGetAttribLocation;
 import static android.opengl.GLES20.glGetUniformLocation;
 import static android.opengl.GLES20.glUniform4f;
+import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
+import static android.opengl.Matrix.orthoM;
 
 public class MyOpenGLRender implements GLSurfaceView.Renderer {
+
+    //加入矩阵  解决普通位置坐标导致的画面变形问题
+    //保存顶点着色器定义的uniform 矩阵的名字
+    private final String U_MATRIX = "u_Matrix";
+    //还需要一个储存矩阵的数组  一般是16个长度
+    private float[] projectionMatirx = new float[16];
+    //还需要一个储存位置的值
+    private int uMatrixLocation ;
+
 
     private final int POSITION_COMPONENT_COUNT = 2;
     private  final int BYTES_PER_FLOAT = 4;
@@ -66,45 +77,45 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
                 //所以可以把一个矩形看作两个三角形
 
                 //给桌子加上一个边框
-                -0.55f,-0.53f,0.7f,0.1f,03f,
-                0.55f,0.53f,0.7f,0.1f,03f,
-                -0.55f,0.53f,0.7f,0.1f,03f,
+                -0.55f,-0.83f,0.7f,0.1f,03f,
+                0.55f,0.83f,0.7f,0.1f,03f,
+                -0.55f,0.83f,0.7f,0.1f,03f,
 
-                -0.55f,-0.53f,0.7f,0.1f,03f,
-                0.55f,-0.53f,0.7f,0.1f,03f,
-                0.55f,0.53f,0.7f,0.1f,03f,
+                -0.55f,-0.83f,0.7f,0.1f,03f,
+                0.55f,-0.83f,0.7f,0.1f,03f,
+                0.55f,0.83f,0.7f,0.1f,03f,
 
                 //继续增加多个三角形  减少三角形边缘突出
                 //第一个
-                -0.25f,-0.25f,1f,1f,1f,
-                -0.5f,-0.5f,0.7f,0.7f,0.7f,
-                0f,-0.5f,0.7f,0.7f,0.7f,
+                -0.25f,-0.4f,1f,1f,1f,
+                -0.5f,-0.8f,0.7f,0.7f,0.7f,
+                0f,-0.8f,0.7f,0.7f,0.7f,
                 0f,0f,0.7f,0.7f,0.7f,
                 -0.5f,0f,0.7f,0.7f,0.7f,
-                -0.5f,-0.5f,0.7f,0.7f,0.7f,
+                -0.5f,-0.8f,0.7f,0.7f,0.7f,
 
                //第二个
-                0.25f,-0.25f,1f,1f,1f,
-                0f,-0.5f,0.7f,0.7f,0.7f,
-                0.5f,-0.5f,0.7f,0.7f,0.7f,
+                0.25f,-0.4f,1f,1f,1f,
+                0f,-0.8f,0.7f,0.7f,0.7f,
+                0.5f,-0.8f,0.7f,0.7f,0.7f,
                 0.5f,0f,0.7f,0.7f,0.7f,
                 0f,0f,0.7f,0.7f,0.7f,
-                0f,-0.5f,0.7f,0.7f,0.7f,
+                0f,-0.8f,0.7f,0.7f,0.7f,
 
                 //第三个
-               0.25f,0.25f,1f,1f,1f,
+               0.25f,0.4f,1f,1f,1f,
                 0f,0f,0.7f,0.7f,0.7f,
                 0.5f,0f,0.7f,0.7f,0.7f,
-                0.5f,0.5f,0.7f,0.7f,0.7f,
-                0f,0.5f,0.7f,0.7f,0.7f,
+                0.5f,0.8f,0.7f,0.7f,0.7f,
+                0f,0.8f,0.7f,0.7f,0.7f,
                 0f,0f,0.7f,0.7f,0.7f,
 
                 //第四个
-                -0.25f,0.25f,1f,1f,1f,
+                -0.25f,0.4f,1f,1f,1f,
                 -0.5f,0f,0.7f,0.7f,0.7f,
                 0f,0f,0.7f,0.7f,0.7f,
-                0f,0.5f,0.7f,0.7f,0.7f,
-                -0.5f,0.5f,0.7f,0.7f,0.7f,
+                0f,0.8f,0.7f,0.7f,0.7f,
+                -0.5f,0.8f,0.7f,0.7f,0.7f,
                 -0.5f,0f,0.7f,0.7f,0.7f,
 
                //开始优化
@@ -123,9 +134,9 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
 
 
                 //first handle
-                0f,-0.25f,0.2f,0.2f,0.7f,
+                0f,-0.4f,0.2f,0.2f,0.7f,
                 //second handle
-                0f,0.25f,0.1f,0.7f,0.1f,
+                0f,0.4f,0.1f,0.7f,0.1f,
                 //third
                 0.0f,0.0f,0.3f,0.7f,0.2f
         };
@@ -167,6 +178,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         //告诉OpenGL 绘制的时候使用这个program
         glUseProgram(program);
 
+        uMatrixLocation = glGetUniformLocation(program,U_MATRIX);
         //获取uniform的位置
       //  uColorLocation = glGetUniformLocation(program,U_COLOR);
         aColorLocation = glGetAttribLocation(program,A_COLOR);
@@ -208,6 +220,25 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         gl.glViewport(0,0,width,height);
+        //j计算不同方向时的宽高比 不管哪个方向 比值是一样的   在于什么时候使用不同的比值
+        //横屏扩展宽度的比值   竖屏扩大高度的比值
+        float aspectRatio = width > height ? (float) width / (float) height : (float) height / (float)width;
+
+        if(width > height){
+
+            /**
+             *  目标数组16位  结果矩阵的起始偏移值  x轴的最小范围  x 轴的最大取值范围
+             *
+             *  y轴的最小范围   y轴的最大取值范围  z轴的最小范围  z轴的最大取值范围
+             *
+             */
+            //landscape 横屏扩展宽度的比值  -1，1 >>>> -aspectRatio,aspectRatio
+            orthoM(projectionMatirx,0,-aspectRatio,aspectRatio,-1f,1f,-1f,1f);
+        }else {
+            //square 竖屏 扩展高度比值 -1，1 >>> aspectRatio,aspectRatio
+            orthoM(projectionMatirx,0,-1f,1f,-aspectRatio,aspectRatio,-1f,1f);
+        }
+
     }
 
     /**
@@ -219,6 +250,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
 
         gl.glClear(GL_COLOR_BUFFER_BIT);
+        glUniformMatrix4fv(uMatrixLocation,1,false,projectionMatirx,0);
         //绘制桌子边框
        // glUniform4f(uColorLocation,0.7f,0.1f,03f,0.7f);
         glDrawArrays(GL_TRIANGLE_FAN,0,6);
