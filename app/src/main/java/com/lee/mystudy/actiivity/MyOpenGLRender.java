@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView;
 
 import com.lee.mystudy.R;
 import com.lee.mystudy.util.LogUtil;
+import com.lee.mystudy.util.MatrixHelper;
 import com.lee.mystudy.util.ShaderHelper;
 import com.lee.mystudy.util.TextResouceReader;
 
@@ -30,7 +31,11 @@ import static android.opengl.GLES20.glUniform4f;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
+import static android.opengl.Matrix.multiplyMM;
 import static android.opengl.Matrix.orthoM;
+import static android.opengl.Matrix.rotateM;
+import static android.opengl.Matrix.setIdentityM;
+import static android.opengl.Matrix.translateM;
 
 public class MyOpenGLRender implements GLSurfaceView.Renderer {
 
@@ -39,6 +44,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     private final String U_MATRIX = "u_Matrix";
     //还需要一个储存矩阵的数组  一般是16个长度
     private float[] projectionMatirx = new float[16];
+    private float[] modelMatirx = new float[16];
     //还需要一个储存位置的值
     private int uMatrixLocation ;
 
@@ -77,16 +83,16 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
                 //所以可以把一个矩形看作两个三角形
 
                 //给桌子加上一个边框
-                -0.55f,-0.83f,0.7f,0.1f,03f,
-                0.55f,0.83f,0.7f,0.1f,03f,
-                -0.55f,0.83f,0.7f,0.1f,03f,
+                0.0f,0.0f,  1f,1f,1f,
+                -0.5f,-0.8f,0.7f,0.1f,03f,
+                0.5f,-0.8f,0.7f,0.1f,03f,
 
-                -0.55f,-0.83f,0.7f,0.1f,03f,
-                0.55f,-0.83f,0.7f,0.1f,03f,
-                0.55f,0.83f,0.7f,0.1f,03f,
+                0.5f,0.8f,0.7f,0.1f,03f,
+                -0.5f,0.8f,0.7f,0.1f,03f,
+                -0.5f,-0.8f,0.7f,0.1f,03f,
 
                 //继续增加多个三角形  减少三角形边缘突出
-                //第一个
+              /*  //第一个
                 -0.25f,-0.4f,1f,1f,1f,
                 -0.5f,-0.8f,0.7f,0.7f,0.7f,
                 0f,-0.8f,0.7f,0.7f,0.7f,
@@ -116,7 +122,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
                 0f,0f,0.7f,0.7f,0.7f,
                 0f,0.8f,0.7f,0.7f,0.7f,
                 -0.5f,0.8f,0.7f,0.7f,0.7f,
-                -0.5f,0f,0.7f,0.7f,0.7f,
+                -0.5f,0f,0.7f,0.7f,0.7f,*/
 
                //开始优化
                /* 0.0f,0.0f,1f,1f,1f,
@@ -138,7 +144,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
                 //second handle
                 0f,0.4f,0.1f,0.7f,0.1f,
                 //third
-                0.0f,0.0f,0.3f,0.7f,0.2f
+             //   0.0f,0.0f,0.3f,0.7f,0.2f
         };
 
         //顶点数据在本地内存里
@@ -222,22 +228,33 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         gl.glViewport(0,0,width,height);
         //j计算不同方向时的宽高比 不管哪个方向 比值是一样的   在于什么时候使用不同的比值
         //横屏扩展宽度的比值   竖屏扩大高度的比值
-        float aspectRatio = width > height ? (float) width / (float) height : (float) height / (float)width;
+     /*   float aspectRatio = width > height ? (float) width / (float) height : (float) height / (float)width;
 
         if(width > height){
 
-            /**
+            *//**
              *  目标数组16位  结果矩阵的起始偏移值  x轴的最小范围  x 轴的最大取值范围
              *
              *  y轴的最小范围   y轴的最大取值范围  z轴的最小范围  z轴的最大取值范围
              *
-             */
+             *//*
             //landscape 横屏扩展宽度的比值  -1，1 >>>> -aspectRatio,aspectRatio
             orthoM(projectionMatirx,0,-aspectRatio,aspectRatio,-1f,1f,-1f,1f);
         }else {
             //square 竖屏 扩展高度比值 -1，1 >>> aspectRatio,aspectRatio
             orthoM(projectionMatirx,0,-1f,1f,-aspectRatio,aspectRatio,-1f,1f);
-        }
+        }*/
+
+        MatrixHelper.perspectiveM(projectionMatirx,45,(float) width / (float)height,1f,10f);
+        setIdentityM(modelMatirx,0);
+        translateM(modelMatirx,0,0f,0f,-2.5f);
+        rotateM(modelMatirx,0,-50f,1f,0f,0f);
+
+        float[] temp = new float[16];
+        multiplyMM(temp,0,projectionMatirx,0,modelMatirx,0);
+        System.arraycopy(temp,0,projectionMatirx,0,temp.length);
+
+
 
     }
 
@@ -258,29 +275,29 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         //更新着色器中的u_color 的值，与属性不同uniform没有默认值  所以指定4个分量 RGBA
     //   glUniform4f(uColorLocation,1.0f,1.0f,1.0f,1.0f);
         //绘制的形状  一个桌子是两个三角形组成   从数组开始处开始读取顶点信息  总共多少个顶点  6个
-        glDrawArrays(GL_TRIANGLE_FAN,6,6);
+   //     glDrawArrays(GL_TRIANGLE_FAN,6,6);
 
-        glDrawArrays(GL_TRIANGLE_FAN,12,6);
+    //    glDrawArrays(GL_TRIANGLE_FAN,12,6);
 
-        glDrawArrays(GL_TRIANGLE_FAN,18,6);
+      //  glDrawArrays(GL_TRIANGLE_FAN,18,6);
 
-        glDrawArrays(GL_TRIANGLE_FAN,24,6);
+       // glDrawArrays(GL_TRIANGLE_FAN,24,6);
 
         //绘制分割线  分割线有两个点
      //   glUniform4f(uColorLocation,1.0f,0.2f,0.4f,0.6f);
          //同上  第7个开始就是分割线的顶点了  有两个
 
-         glDrawArrays(GL_LINES,30,2);
+         glDrawArrays(GL_LINES,6,2);
 
          //绘制两个棒槌😂 其实就是两个点
      //  glUniform4f(uColorLocation,0.0f,0.0f,1.0f,1.0f);
-       glDrawArrays(GL_POINTS,32,1);
+       glDrawArrays(GL_POINTS,8,1);
         //第二个
      //   glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
-        glDrawArrays(GL_POINTS,33,1);
+        glDrawArrays(GL_POINTS,9,1);
         //第三个
      //   glUniform4f(uColorLocation,1.0f,0.0f,0.0f,1.0f);
-        glDrawArrays(GL_POINTS,34,1);
+        glDrawArrays(GL_POINTS,10,1);
 
 
 
