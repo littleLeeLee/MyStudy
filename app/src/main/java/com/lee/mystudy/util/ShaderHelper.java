@@ -153,7 +153,22 @@ public class ShaderHelper {
 
         return validateState[0] != 0;
 
+    }
 
+    //编译vertexShaderSource和fragmentShaderSource 并把他们链接成一个程序
+    public static int buildProgram(String vertexShaderSource,String fragmentShaderSource){
+
+        int program;
+        //加载着色器
+        int vertexShadex = complieVertexShadex(vertexShaderSource);
+        int fragmentShadex = complieFragmentShadex(fragmentShaderSource);
+
+        //链接
+        program = linkProgram(vertexShadex,fragmentShadex);
+
+        validateProgram(program);
+
+        return program;
 
     }
 
