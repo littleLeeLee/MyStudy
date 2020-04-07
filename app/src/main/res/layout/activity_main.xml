@@ -6,34 +6,25 @@
         android:layout_height="match_parent"
         tools:context=".actiivity.MainActivity">
 
-    <com.jaredrummler.android.widget.AnimatedSvgView
-            android:id="@+id/animated_svg_view"
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
-            app:animatedSvgFillColors="@array/google_glyph_colors"
-            app:animatedSvgGlyphStrings="@array/google_glyph_strings"
-            app:animatedSvgFillStart="1200"
-            app:animatedSvgFillTime="1000"
-            app:animatedSvgImageSizeX="400"
-            app:animatedSvgImageSizeY="400"
-            app:animatedSvgTraceTime="2000"
-            app:animatedSvgTraceTimePerGlyph="1000"
-            app:layout_constraintBottom_toTopOf="@+id/guideline"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            android:layout_marginTop="8dp"
-            app:layout_constraintTop_toTopOf="parent"
-            android:layout_marginStart="8dp"
-            app:layout_constraintStart_toStartOf="parent"/>
+    <com.eftimoff.androipathview.PathView
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:id="@+id/pathView"
+        app:layout_constraintBottom_toTopOf="@+id/ry_main"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:pathColor="@color/google_green"
+        app:pathWidth="2dp"
+        app:svg="@raw/bingdu"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
-            android:layout_marginBottom="8dp" app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginBottom="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
             android:id="@+id/ry_main" android:layout_marginTop="8dp" app:layout_constraintTop_toTopOf="@+id/guideline"/>
     <androidx.constraintlayout.widget.Guideline android:layout_width="wrap_content" android:layout_height="wrap_content"
                                                 android:id="@+id/guideline"

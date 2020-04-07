@@ -9,8 +9,6 @@ import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.blankj.utilcode.util.ToastUtils;
-import com.lee.mystudy.util.LogUtil;
 
 public class MyOpenGLActivity extends AppCompatActivity {
 
@@ -27,7 +25,7 @@ public class MyOpenGLActivity extends AppCompatActivity {
         ConfigurationInfo deviceConfigurationInfo = activityManager.getDeviceConfigurationInfo();
         int glEsVersion = deviceConfigurationInfo.reqGlEsVersion;
         boolean support = glEsVersion >= 0x20000;
-        ToastUtils.showShort("support es :" + support);
+    //    ToastUtils.showShort("support es :" + support);
 
         if(support){
 
@@ -37,7 +35,7 @@ public class MyOpenGLActivity extends AppCompatActivity {
             setContentView(myGlSurceface);
         }else {
 
-            ToastUtils.showShort("not support EL2");
+       //     ToastUtils.showShort("not support EL2");
         }
     }
 

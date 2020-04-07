@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView;
 
 import com.lee.mystudy.R;
 import com.lee.mystudy.object.Mallet;
+import com.lee.mystudy.object.Puck;
 import com.lee.mystudy.object.Table;
 import com.lee.mystudy.util.LogUtil;
 import com.lee.mystudy.util.MatrixHelper;
@@ -40,6 +41,7 @@ import static android.opengl.Matrix.multiplyMM;
 import static android.opengl.Matrix.orthoM;
 import static android.opengl.Matrix.rotateM;
 import static android.opengl.Matrix.setIdentityM;
+import static android.opengl.Matrix.setLookAtM;
 import static android.opengl.Matrix.translateM;
 
 public class MyOpenGLRender implements GLSurfaceView.Renderer {
@@ -56,6 +58,13 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     private ColorShaderProgram colorShaderProgram;
 
     private int texture;
+
+    private float[] viewMatrix = new float[16];
+    private float[] viewProjectionMatrix = new float[16];
+    private float[] modelViewProjectionMatrix = new float[16];
+
+    private Puck puck;
+
 
     public MyOpenGLRender(Context context) {
         mContext = context;
@@ -74,11 +83,12 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         gl.glClearColor(0.0f,0.0f,0.0f,0.0f);
         table = new Table();
-        mallet = new Mallet();
+        mallet = new Mallet(0.08f,0.15f,32);
+        puck = new Puck(0.06f,0.02f,32);
 
         textureShaderProgram = new TextureShaderProgram(mContext);
         colorShaderProgram = new ColorShaderProgram(mContext);
-        texture = TextureHelper.loadTextrue(mContext,R.drawable.air_hockey_surface);
+        texture = TextureHelper.loadTextrue(mContext,R.drawable.table);
 
     }
 
@@ -111,6 +121,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         }*/
 
         MatrixHelper.perspectiveM(projectionMatrix,45,(float) width / (float)height,1f,10f);
+        setLookAtM(viewMatrix,0,0f,1.2f,2.2f,0f,0f,0f,0f,1f,0f);
         setIdentityM(modeMatrix,0);
         translateM(modeMatrix,0,0f,0f,-2.5f);
         rotateM(modeMatrix,0,-50f,1f,0f,0f);
@@ -132,7 +143,9 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
 
         gl.glClear(GL_COLOR_BUFFER_BIT);
-        //draw table
+        multiplyMM(viewProjectionMatrix,0,projectionMatrix,0,viewMatrix,0);
+
+      /*  //draw table
         textureShaderProgram.useProgram();
         textureShaderProgram.setUniforms(projectionMatrix,texture);
         table.bindData(textureShaderProgram);
@@ -142,7 +155,17 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         colorShaderProgram.useProgram();
         colorShaderProgram.setUniforms(projectionMatrix);
         mallet.bindData(colorShaderProgram);
-        mallet.draw();
+        mallet.draw();*/
+
+        positionTableScene();
+
+        textureShaderProgram.useProgram();
+        textureShaderProgram.setUniforms(modelViewProjectionMatrix,texture);
+        table.bindData(textureShaderProgram);
+        table.draw();
+
+
+        positionObjectInScene(0f,mallet.);
 
     }
 }

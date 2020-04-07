@@ -1,30 +1,31 @@
 package com.lee.mystudy.actiivity
 
+
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.os.Build
 import android.os.Bundle
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.Animation
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.blankj.utilcode.util.ToastUtils
-import com.lee.mystudy.adapter.MainAdapter
-import kotlinx.android.synthetic.main.activity_main.*
-import com.jaredrummler.android.widget.AnimatedSvgView
+import com.eftimoff.androipathview.PathView
 import com.lee.mystudy.R
+import com.lee.mystudy.adapter.MainAdapter
 import com.lee.mystudy.jnitest.MyJniLibs
 import com.lee.mystudy.util.LogUtil
-import com.tbruyelle.rxpermissions2.RxPermissions
-
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
 
     private var dataList = ArrayList<String>()
 
+    @RequiresApi(Build.VERSION_CODES.M)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -37,18 +38,41 @@ class MainActivity : AppCompatActivity() {
         dataList.add("camera")
         dataList.add("camera")
         setDataView()
-        val svgView = findViewById<AnimatedSvgView>(R.id.animated_svg_view)
-        svgView.setOnStateChangeListener {
-        //    LogUtil.d("state:$it")
+        val pathView = findViewById<PathView>(R.id.pathView)
+        pathView.pathAnimator
+                .delay(100)
+                .duration(2000)
+               .listenerStart(object :PathView.AnimatorBuilder.ListenerStart{
+                   override fun onAnimationStart() {
 
-            if(it == 3){
-                svgView.postDelayed( {
-                    svgView.start()
-                },500)
-            }
-        }
-        svgView.start()
+                   }
+
+               })
+                .listenerEnd(object :PathView.AnimatorBuilder.ListenerEnd{
+                    override fun onAnimationEnd() {
+                        pathView.pathAnimator.delay(2000)
+                                .duration(2000)
+                                .start();
+                    }
+
+                } )
+                .interpolator(AccelerateDecelerateInterpolator())
+                .start()
+
+        /* val svgView = findViewById<AnimatedSvgView>(R.id.animated_svg_view)
+         svgView.setOnStateChangeListener {
+         //    LogUtil.d("state:$it")
+
+             if(it == 3){
+                 svgView.postDelayed( {
+                     svgView.start()
+                 },500)
+             }
+         }
+         svgView.start()*/
     }
+
+
 
     private fun testSpeed() {
         /*var path = "/sdcard/facepic/1563243566797.jpg"
@@ -77,30 +101,20 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    @SuppressLint("CheckResult")
-    private fun checkPer() {
+    var permissions : Array<String> = arrayOf(Manifest.permission.CAMERA,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,Manifest.permission.READ_EXTERNAL_STORAGE
+    )
 
-        val rxPermissions = RxPermissions(this)
-        rxPermissions.requestEach(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA)
-            .subscribe {
-                when {
-                    it.granted -> {
-                        LogUtil.d("权限以获取")
-                    }
-                    it.shouldShowRequestPermissionRationale -> {
-                        LogUtil.d("权限获取失败")
-                    }
-                    else -> {
-                        LogUtil.d("权限获取失败${it.name}")
-                    }
-                }
-            }
+    @RequiresApi(Build.VERSION_CODES.M)
+    fun checkPer(){
+
+     //  if(!PermissionUtils.isGranted(Manifest.permission.CAMERA)){
+           requestPermissions(permissions,1024);
+    //   }
 
 
     }
+
 
     @SuppressLint("WrongConstant")
     private fun setDataView() {
@@ -108,7 +122,7 @@ class MainActivity : AppCompatActivity() {
         val mainAdapter = MainAdapter(this, dataList)
         mainAdapter.setOnItemClickListener(object: MainAdapter.onItemClickListener {
             override fun onItemClick(view: View, position: Int) {
-                ToastUtils.showShort(""+position)
+        //        ToastUtils.showShort(""+position)
                 when(position){
 
                     0->{

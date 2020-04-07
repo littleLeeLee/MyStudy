@@ -4,6 +4,7 @@ import com.lee.mystudy.data.VertexArray;
 import com.lee.program.ColorShaderProgram;
 
 import java.net.PortUnreachableException;
+import java.util.List;
 
 import static android.opengl.GLES20.GL_POINTS;
 import static android.opengl.GLES20.glDrawArrays;
@@ -15,8 +16,8 @@ import static com.lee.mystudy.data.Constants.BYTES_PER_FLOAT;
 public class Mallet {
 
     //坐标属性的个数
-    private static int POSITON_COMPONENT_COUNT = 2;
-    //颜色属性的个数
+    private static int POSITON_COMPONENT_COUNT = 3;
+   /* //颜色属性的个数
     private static int COLOR_COMPONENT_COUNT = 3;
     //行距 所占用的字节数 *8
     private static int STRIDE = (POSITON_COMPONENT_COUNT + COLOR_COMPONENT_COUNT) * BYTES_PER_FLOAT;
@@ -48,6 +49,14 @@ public class Mallet {
 
     public void draw(){
         glDrawArrays(GL_POINTS,0,2);
-    }
+    }*/
+
+   public float radius;
+   private float height;
+
+   private VertexArray vertexArray;
+   private List<ObjectBuilder.DrawCommand> drawList;
+
+
 
 }

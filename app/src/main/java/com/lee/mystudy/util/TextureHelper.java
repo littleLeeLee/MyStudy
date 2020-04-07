@@ -3,11 +3,10 @@ package com.lee.mystudy.util;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.opengl.GLES10;
-import android.opengl.GLES20;
+
 import android.util.Log;
 
-import com.blankj.utilcode.util.LogUtils;
+
 
 import static android.opengl.GLES20.GL_LINEAR;
 import static android.opengl.GLES20.GL_LINEAR_MIPMAP_LINEAR;
@@ -54,6 +53,7 @@ public class TextureHelper {
           glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
           //告诉OpenGL 输入bitmap定义的位图数据，并把它复制到当前绑定的w纹理对象
           texImage2D(GL_TEXTURE_2D,0,bitmap,0);
+
           //回收掉位图
           bitmap.recycle();
           //生成的级别
