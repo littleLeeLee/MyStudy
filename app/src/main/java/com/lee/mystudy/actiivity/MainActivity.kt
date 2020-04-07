@@ -3,22 +3,19 @@ package com.lee.mystudy.actiivity
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.blankj.utilcode.util.ToastUtils
-import com.lee.mystudy.adapter.MainAdapter
-import kotlinx.android.synthetic.main.activity_main.*
 import com.jaredrummler.android.widget.AnimatedSvgView
 import com.lee.mystudy.R
+import com.lee.mystudy.adapter.MainAdapter
 import com.lee.mystudy.jnitest.MyJniLibs
 import com.lee.mystudy.util.LogUtil
-import com.tbruyelle.rxpermissions2.RxPermissions
-
+import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
@@ -79,26 +76,15 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("CheckResult")
     private fun checkPer() {
-
-        val rxPermissions = RxPermissions(this)
-        rxPermissions.requestEach(
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.CAMERA)
-            .subscribe {
-                when {
-                    it.granted -> {
-                        LogUtil.d("权限以获取")
-                    }
-                    it.shouldShowRequestPermissionRationale -> {
-                        LogUtil.d("权限获取失败")
-                    }
-                    else -> {
-                        LogUtil.d("权限获取失败${it.name}")
-                    }
-                }
-            }
-
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                || ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            //没有权限，申请权限
+            val permissions = arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+            //申请权限，其中RC_PERMISSION是权限申请码，用来标志权限申请的
+            ActivityCompat.requestPermissions(this@MainActivity, permissions, 1024)
+        }else {
+            //拥有权限
+        }
 
     }
 
@@ -108,7 +94,7 @@ class MainActivity : AppCompatActivity() {
         val mainAdapter = MainAdapter(this, dataList)
         mainAdapter.setOnItemClickListener(object: MainAdapter.onItemClickListener {
             override fun onItemClick(view: View, position: Int) {
-                ToastUtils.showShort(""+position)
+         //       ToastUtils.showShort(""+position)
                 when(position){
 
                     0->{

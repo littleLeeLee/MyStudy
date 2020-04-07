@@ -7,7 +7,6 @@ import android.opengl.GLES10;
 import android.opengl.GLES20;
 import android.util.Log;
 
-import com.blankj.utilcode.util.LogUtils;
 
 import static android.opengl.GLES20.GL_LINEAR;
 import static android.opengl.GLES20.GL_LINEAR_MIPMAP_LINEAR;
