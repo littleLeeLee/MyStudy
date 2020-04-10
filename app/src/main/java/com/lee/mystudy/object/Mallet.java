@@ -1,9 +1,11 @@
 package com.lee.mystudy.object;
 
 import com.lee.mystudy.data.VertexArray;
+import com.lee.mystudy.util.Geometry;
 import com.lee.program.ColorShaderProgram;
 
 import java.net.PortUnreachableException;
+import java.util.List;
 
 import static android.opengl.GLES20.GL_POINTS;
 import static android.opengl.GLES20.glDrawArrays;
@@ -14,7 +16,7 @@ import static com.lee.mystudy.data.Constants.BYTES_PER_FLOAT;
  */
 public class Mallet {
 
-    //坐标属性的个数
+  /*  //坐标属性的个数
     private static int POSITON_COMPONENT_COUNT = 2;
     //颜色属性的个数
     private static int COLOR_COMPONENT_COUNT = 3;
@@ -48,6 +50,45 @@ public class Mallet {
 
     public void draw(){
         glDrawArrays(GL_POINTS,0,2);
+    }*/
+
+  private static int POSITION_COMPONENT_COUNT = 3;
+  public float radius;
+  public float height;
+
+  private VertexArray vertexArray;
+  private List<ObjectBuilder.DrawCommand> drawList;
+
+    public Mallet(float radius, float height, int numPointsAroundMallet) {
+
+        ObjectBuilder.GeneratedData generatedData =
+                ObjectBuilder.createMallet(new Geometry.Point(0f, 0f, 0f), radius,
+                height, numPointsAroundMallet);
+
+        this.radius = radius;
+        this.height = height;
+        vertexArray = new VertexArray(generatedData.vertexData);
+        drawList = generatedData.drawList;
+
     }
+
+    public void bindData(ColorShaderProgram colorShaderProgram){
+
+        vertexArray.setVertexAttribPointer(
+                0,colorShaderProgram.getPositionAttributeLocation(),
+                POSITION_COMPONENT_COUNT,0);
+
+    }
+
+    public void draw(){
+
+        for (ObjectBuilder.DrawCommand drawCommand : drawList) {
+
+            drawCommand.draw();
+
+        }
+
+    }
+
 
 }
