@@ -71,6 +71,10 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
 
     private float[] invertedViewProjectionMatrix = new float[16];
 
+    private float leftBound = -0.5f;
+    private float rightBound = 0.5f;
+    private float farBound = -0.8f;
+    private float nearBound = 0.8f;
 
 
     private boolean malletPressed = false;
@@ -271,8 +275,23 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
             Geometry.Plane plane = new Geometry.Plane(new Geometry.Point(0,0,0),new Geometry.Vector(0,1,0));
             Geometry.Point touchedPoint = Geometry.intersectionPoint(ray,plane);
             blueMalletPosition = new Geometry.Point(
-                    touchedPoint.x,mallet.height / 2f,touchedPoint.z);
+                    clamp(touchedPoint.x,
+                            leftBound + mallet.radius,
+                            rightBound - mallet.radius),
+                    mallet.height / 2f,
+                    clamp(touchedPoint.z,
+                            0f+mallet.radius,
+                            nearBound - mallet.radius)
+                    );
+
         }
+
+    }
+
+
+    public static float clamp(float value ,float min,float max){
+
+        return Math.min(max,Math.max(value,min));
 
     }
 }
