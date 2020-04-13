@@ -80,6 +80,13 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     private boolean malletPressed = false;
     private Geometry.Point blueMalletPosition;
 
+    //上一步木槌的位置
+    private Geometry.Point previousBlueMalletPosition;
+    //冰球的位置
+    private Geometry.Point puckPosition;
+    //冰球的速度和方向
+    private Geometry.Vector puckVector;
+
     public MyOpenGLRender(Context context) {
         mContext = context;
 
@@ -101,6 +108,8 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         puck = new Puck(0.06f,0.02f,32);
 
         blueMalletPosition = new Geometry.Point(0f,mallet.height / 2f,0.4f);
+        puckPosition = new Geometry.Point(0f,puck.height / 2f,0f);
+        puckVector = new Geometry.Vector(0f,0f,0f);
 
         textureShaderProgram = new TextureShaderProgram(mContext);
         colorShaderProgram = new ColorShaderProgram(mContext);
@@ -162,6 +171,27 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     public void onDrawFrame(GL10 gl) {
 
         gl.glClear(GL_COLOR_BUFFER_BIT);
+        puckPosition = puckPosition.translate(puckVector);
+        //给冰球加入边界判断
+
+        //向左移动的过远
+        if(puckPosition.x <leftBound + puck.radius ||
+        puckPosition.x > rightBound - puck.radius){
+
+            puckVector = new Geometry.Vector(-puckVector.x,puckVector.y,puckVector.z);
+
+        }
+        //向右移动的过远
+        if(puckPosition.z < farBound + puck.radius ||
+        puckPosition.z > nearBound - puck.radius){
+            puckVector  = new Geometry.Vector(puckVector.x,puckVector.y,puckVector.z);
+        }
+        //近边和远边的判断
+        puckPosition = new Geometry.Point(clamp(puckPosition.x,leftBound + puck.radius,
+                rightBound - puck.radius),puckPosition.y,
+                clamp(puckPosition.z,farBound + puck.radius,nearBound - puck.radius));
+
+
         //投影矩阵和视图矩阵相乘的结果存到viewProjectionMatrix
         multiplyMM(viewProjectionMatrix,0,projectionMatrix,0,viewMatrix,0);
         //创建一个反转的矩阵
@@ -186,10 +216,13 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         mallet.draw();
 
         //draw puck
-        positionObjectInScene(0f,puck.height / 2f,0f);
+        positionObjectInScene(puckPosition.x,puckPosition.y,puckPosition.z);
         colorShaderProgram.setUniforms(modelViewProjectionMatrix,0.8f,0.8f,1f);
         puck.bindData(colorShaderProgram);
         puck.draw();
+       puckVector = puckVector.scale(0.99f);
+      //  puckVector = puckVector.scale(0.9f);
+     //   puckVector = puckVector.scale(0.9f);
 
 
       /*  //draw table
@@ -269,6 +302,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
 
     public void handleTouchDrag(float normalizedX, float normalizedY) {
 
+        previousBlueMalletPosition = blueMalletPosition;
         if(malletPressed){
 
             Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX, normalizedY);
@@ -283,6 +317,19 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
                             0f+mallet.radius,
                             nearBound - mallet.radius)
                     );
+
+            //碰撞测试代码
+            float distance = Geometry.vectorBetween(blueMalletPosition, puckPosition).length();
+
+            //判断蓝色木槌和冰球之间的距离 如果小于它们的半径之和 就算是击中
+            //并且用前一个木槌的位置和当前木槌的位置创建了一个方向向量，木槌移动的越快向量越大 冰球移动的越远
+            if(distance < (puck.radius + mallet.radius)){
+
+                puckVector = Geometry.vectorBetween(
+                        previousBlueMalletPosition,blueMalletPosition
+                );
+
+            }
 
         }
 
