@@ -1,13 +1,16 @@
 package com.lee.mystudy.actiivity;
 
 import android.content.Context;
+import android.media.Image;
 import android.media.tv.TvContract;
 import android.opengl.GLSurfaceView;
+import android.util.Log;
 
 import com.lee.mystudy.R;
 import com.lee.mystudy.object.Mallet;
 import com.lee.mystudy.object.Puck;
 import com.lee.mystudy.object.Table;
+import com.lee.mystudy.util.Geometry;
 import com.lee.mystudy.util.LogUtil;
 import com.lee.mystudy.util.MatrixHelper;
 import com.lee.mystudy.util.ShaderHelper;
@@ -37,7 +40,9 @@ import static android.opengl.GLES20.glUniform4f;
 import static android.opengl.GLES20.glUniformMatrix4fv;
 import static android.opengl.GLES20.glUseProgram;
 import static android.opengl.GLES20.glVertexAttribPointer;
+import static android.opengl.Matrix.invertM;
 import static android.opengl.Matrix.multiplyMM;
+import static android.opengl.Matrix.multiplyMV;
 import static android.opengl.Matrix.orthoM;
 import static android.opengl.Matrix.rotateM;
 import static android.opengl.Matrix.setIdentityM;
@@ -64,6 +69,12 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
     private float[] viewProjectionMatrix = new float[16];
     private float[] modelViewProjectionMatrix = new float[16];
 
+    private float[] invertedViewProjectionMatrix = new float[16];
+
+
+
+    private boolean malletPressed = false;
+    private Geometry.Point blueMalletPosition;
 
     public MyOpenGLRender(Context context) {
         mContext = context;
@@ -84,6 +95,8 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         table = new Table();
         mallet = new Mallet(0.08f,0.15f,32);
         puck = new Puck(0.06f,0.02f,32);
+
+        blueMalletPosition = new Geometry.Point(0f,mallet.height / 2f,0.4f);
 
         textureShaderProgram = new TextureShaderProgram(mContext);
         colorShaderProgram = new ColorShaderProgram(mContext);
@@ -147,6 +160,8 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         gl.glClear(GL_COLOR_BUFFER_BIT);
         //投影矩阵和视图矩阵相乘的结果存到viewProjectionMatrix
         multiplyMM(viewProjectionMatrix,0,projectionMatrix,0,viewMatrix,0);
+        //创建一个反转的矩阵
+        invertM(invertedViewProjectionMatrix,0,viewProjectionMatrix,0);
 
         //draw table
         positionTableInScene();
@@ -162,7 +177,7 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         mallet.bindData(colorShaderProgram);
         mallet.draw();
 
-        positionObjectInScene(0f,mallet.height / 2f,0.4f);
+        positionObjectInScene(blueMalletPosition.x,blueMalletPosition.y,blueMalletPosition.z);
         colorShaderProgram.setUniforms(modelViewProjectionMatrix,0f,0f,1f);
         mallet.draw();
 
@@ -202,6 +217,62 @@ public class MyOpenGLRender implements GLSurfaceView.Renderer {
         rotateM(modeMatrix,0,-90f,1f,0f,0f);
         multiplyMM(modelViewProjectionMatrix,0,viewProjectionMatrix,0,modeMatrix,0);
 
+
+    }
+
+
+    public void handleTouchPress(float normalizedX, float normalizedY) {
+
+        Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX,normalizedY);
+        //创建与木槌相当大小的包围球
+        Geometry.Sphere malletBoundingSphere = new Geometry.Sphere(
+                new Geometry.Point(blueMalletPosition.x,blueMalletPosition.y,blueMalletPosition.z)
+        ,mallet.height / 2f);
+        malletPressed = Geometry.intersects(malletBoundingSphere,ray);
+
+    }
+
+    //反转透视投影和透视除法
+    private Geometry.Ray convertNormalized2DPointToRay(float normalizedX, float normalizedY) {
+
+        Log.d("wylee","normalizedX：" + normalizedX +"，normalizedY：" + normalizedY);
+
+            float[] nearPointNdc = {normalizedX,normalizedY,-1,1};
+            float[] farPointNdc = {normalizedX,normalizedY,1,1};
+
+            float[] nearPointWorld = new float[4];
+            float[] farPointWorld = new float[4];
+            multiplyMV(nearPointWorld,0,invertedViewProjectionMatrix,0,nearPointNdc,0);
+            multiplyMV(farPointWorld,0,invertedViewProjectionMatrix,0,farPointNdc,0);
+            divideByW(nearPointWorld);
+            divideByW(farPointWorld);
+
+        Geometry.Point nearPointRay = new Geometry.Point(nearPointWorld[0],
+                nearPointWorld[1],nearPointWorld[2]);
+
+        Geometry.Point farPointRay = new Geometry.Point(farPointWorld[0],
+                farPointWorld[1],farPointWorld[2]);
+        return new Geometry.Ray(nearPointRay,Geometry.vectorBetween(nearPointRay,farPointRay));
+    }
+
+    private void divideByW(float[] vector) {
+
+        vector[0] /= vector[3];
+        vector[1] /= vector[3];
+        vector[2] /= vector[3];
+
+    }
+
+    public void handleTouchDrag(float normalizedX, float normalizedY) {
+
+        if(malletPressed){
+
+            Geometry.Ray ray = convertNormalized2DPointToRay(normalizedX, normalizedY);
+            Geometry.Plane plane = new Geometry.Plane(new Geometry.Point(0,0,0),new Geometry.Vector(0,1,0));
+            Geometry.Point touchedPoint = Geometry.intersectionPoint(ray,plane);
+            blueMalletPosition = new Geometry.Point(
+                    touchedPoint.x,mallet.height / 2f,touchedPoint.z);
+        }
 
     }
 }
